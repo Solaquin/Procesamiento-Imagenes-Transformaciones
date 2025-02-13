@@ -44,15 +44,33 @@ def rotación():
     grados = [47, 75, 90, 135]
 
     for i in grados:
-
         radianes = np.radians(i)
 
-        M = np.array([[np.cos(radianes), -np.sin(radianes), 0], [np.sin(radianes), np.cos(radianes), 0]], dtype = np.float32) # Creación matriz de escalamiento
+        # Calcular el tamaño del nuevo marco para acomodar la imagen rotada
+        cos = np.abs(np.cos(radianes))
+        sin = np.abs(np.sin(radianes))
+        new_width = int(img.shape[0] * sin + img.shape[1] * cos)
+        new_height = int(img.shape[0] * cos + img.shape[1] * sin)
 
-        #Aplicar transformación
-        rotated_img = cv.warpAffine(img, M, (img.shape[1], img.shape[0]), flags=cv.INTER_LINEAR)
+        M = np.array([[np.cos(radianes), -np.sin(radianes), 0], 
+                      [np.sin(radianes), np.cos(radianes), 0]], dtype = np.float32) # Creación matriz de rotación
+        
+        # Calcular el centro de la imagen original
+        center_x = img.shape[1] / 2
+        center_y = img.shape[0] / 2
 
-        # Mostrar la imagen reducida
+        # Calcular el centro del nuevo marco
+        new_center_x = new_width / 2
+        new_center_y = new_height / 2
+
+        # Ajustar la matriz de transformación para trasladar la imagen al centro del nuevo marco
+        M[0, 2] = new_center_x - (center_x * M[0, 0] + center_y * M[0, 1])
+        M[1, 2] = new_center_y - (center_x * M[1, 0] + center_y * M[1, 1])
+
+        # Aplicar la transformación afín
+        rotated_img = cv.warpAffine(img, M, (new_width, new_height), flags=cv.INTER_LINEAR)
+
+        # Mostrar la imagen rotada
         cv.imshow(f'Imagen rotada grados = {i}', rotated_img)
         cv.waitKey(0)
         cv.destroyWindow(f'Imagen rotada grados = {i}')
@@ -113,8 +131,13 @@ def normalizar_imagen(rango):
     mostrar_imagen_y_histograma(img_normalizada, f"Imagen Normalizada Rango = {rango}", np.max(img_normalizada) + 1)
 
 
-#def contraste_logaritmico():
+def contraste_logaritmico():
+    img_log = np.uint8(255 * ((np.log(1 + img))/np.log(256)))
+    mostrar_imagen_y_histograma(img_log, "Imagen con contraste logaritmico")
 
+def contraste_exponencial(value):
+    img_exp = np.uint8(img / (1 - np.exp(-value)))
+    mostrar_imagen_y_histograma(img_exp, "Imagen con contraste exponencial")
 
 
 
@@ -127,4 +150,5 @@ img_disminucionbrillo()
 img_correciongamma(0.1)
 normalizar_imagen([0, 100])
 normalizar_imagen([-1, 1])
-normalizar_imagen([0, 1024])
+contraste_logaritmico()
+contraste_exponencial(1)
