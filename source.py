@@ -2,8 +2,6 @@ import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
 
-np.set_printoptions(threshold=np.inf)  # Mostrar todo el array sin truncar
-
 img = cv.imread('gato.jpg', cv.IMREAD_GRAYSCALE)
 
 def reduc_amplia():
